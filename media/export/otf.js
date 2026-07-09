@@ -24,13 +24,13 @@ const tableGen = {
   cmap: (view, offset, glyphs, substitutions)=>{
     offset = align4(offset);
     const start = offset;
-    let has4subtable = glyphs.filter(gl=>gl.name.length===1&&gl.name.codePointAt(0)=>0xFFFF).length>0;
-    let has12subtable = glyphs.filter(gl=>gl.name.length===1&&gl.name.codePointAt(0)=>0xFFFF).length>0;
-    let has14subtable = glyphs.filter(gl=>gl.name.length>1).length>0;
+    let subtable4glyphs = glyphs.filter(gl=>gl.name.length===1&&gl.name.codePointAt(0)<=0xFFFF);
+    let subtable12glyphs = glyphs.filter(gl=>gl.name.length===1&&gl.name.codePointAt(0)>0xFFFF);
+    let subtable14glyphs = glyphs.filter(gl=>gl.name.length>1);
 
     view.setUint16(offset, 0, false); // version
     offset += 2;
-    view.setUint16(offset, has4subtable+has12subtable+has14subtable, false); // numTables
+    view.setUint16(offset, (subtable4glyphs.length>0?1:0)+(subtable12glyphs.length>0?1:0)+(subtable14glyphs.length>0?1:0), false); // numTables
     offset += 2;
 
     let subtableIdxStart = offset;
@@ -49,7 +49,7 @@ const tableGen = {
       view.setUint16(offset+2, 0, false); // TODO: length
       view.setUint16(offset+4, 0, false); // language
       offset += 6;
-      let segCount = 0; // TODO: What is this
+      let segCount = subtable4glyphs.length+1; // Optimize segments if you want, but im not doing that
       let entrySelector = fl2(segCount);
       let searchRange = (1<<entrySelector)*2;
       view.setUint16(offset, segCount*2, false); // segCountX2
@@ -58,13 +58,13 @@ const tableGen = {
       view.setUint16(offset+6, segCount*2-searchRange, false); // rangeShift
       offset += 8;
       for (let i=0; i<segCount; i++) {
-        view.setUint16(offset, 0, false); // TODO: endCode
+        view.setUint16(offset, subtable4glyphs[i].codePointAt(0), false); // endCode
         offset += 2;
       }
       view.setUint16(offset, 0, false); // reserved
       offset += 2;
       for (let i=0; i<segCount; i++) {
-        view.setUint16(offset, 0, false); // TODO: startCode
+        view.setUint16(subtable4glyphs[i].codePointAt(0), 0, false); // startCode
         offset += 2;
       }
       for (let i=0; i<segCount; i++) {
