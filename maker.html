@@ -43,9 +43,19 @@
     </nav>
     <main>
       <div data-page="settings">
-
+        <label>Name: <input></label>
       </div>
       <div data-page="glyphs">
+        <div>
+          <h2>Glyphs</h2>
+          <button onclick="window.createGlyph()">+</button>
+        </div>
+        <div class="list" id="glyph-list"></div>
+        <div>
+          <h2>Substitution / Ligatures</h2>
+          <button onclick="window.createSub()">+</button>
+        </div>
+        <div class="list" id="sub-list"></div>
       </div>
     </main>
     <script src="./media/maker.js" type="module"></script>
