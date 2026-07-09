@@ -21,15 +21,39 @@ function getChecksum(buffer, offset, length) {
   return sum >>> 0;
 }
 
-export function generateOTF() {
+// Tables
+const tableGen = {
+  cmap: (view, offset, glyphs, substitutions)=>{
+    view.setUint16(offset, 0, false); // version
+    offset += 2;
+    view.setUint16(offset, 1, false); // numTables (think one unicode is enough, we def need more)
+    offset += 2;
+
+    view.setUint16(offset, 0, false); // platformID
+    offset += 2;
+    view.setUint16(offset, 5, false); // encodingID
+    offset += 2;
+    view.setUint32(offset, 12, false); // subtableOffset
+    offset += 4;
+
+    view.setUint16(offset, 14, false); // format
+    offset += 2;
+    view.setUint32(offset, 0, false); // TODO: length
+    offset += 4;
+    view.setUint32(offset, 0, false); // TODO: numVarSelectorRecords
+    offset += 4;
+  }
+};
+
+export function generateOTF(glyphs, substitutions) {
   const buffer = new ArrayBuffer(4096);
   const view = new DataView(buffer);
   let offset = 0;
 
   let tables = [
-    'OS/2',
     'cmap',
     'glyf',
+    'OS/2',
     'head',
     'hhea',
     'hmtx',
@@ -38,6 +62,7 @@ export function generateOTF() {
     'name',
     'post'
   ];
+  if (substitutions.length) tables.push('GSUB')
 
   let entrySelector = Math.floor(Math.log2(tables.length));
   let searchRange = (1<<entrySelector)*16;
