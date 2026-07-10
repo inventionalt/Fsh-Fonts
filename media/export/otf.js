@@ -21,7 +21,7 @@ function getChecksum(view, offset, length) {
 
 // Tables
 const tableGen = {
-  cmap: (view, offset, glyphs, substitutions)=>{
+  cmap: (view, offset, settings, glyphs, substitutions)=>{
     let subtable4glyphs = glyphs.filter(gl=>gl.char.length===1&&gl.char.codePointAt(0)<=0xFFFF);
     let subtable12glyphs = glyphs.filter(gl=>gl.char.length===1&&gl.char.codePointAt(0)>0xFFFF);
     let subtable14glyphs = glyphs.filter(gl=>gl.char.length>1);
@@ -85,24 +85,34 @@ const tableGen = {
 
     return offset;
   },
-  glyf: (view, offset, glyphs, substitutions)=>{
+  glyf: (view, offset, settings, glyphs, substitutions)=>{
 /*int16	numberOfContours	If the number of contours is greater than or equal to zero, this is a simple glyph. If negative, this is a composite glyph — the value -1 should be used for composite glyphs.
 int16	xMin	Minimum x for coordinate data.
 int16	yMin	Minimum y for coordinate data.
 int16	xMax	Maximum x for coordinate data.
 int16	yMax	Maximum y for coordinate data.*/
   },
-  maxp: (view, offset, glyphs, substitutions)=>offset,
-  'OS/2': (view, offset, glyphs, substitutions)=>offset,
-  head: (view, offset, glyphs, substitutions)=>offset,
-  hhea: (view, offset, glyphs, substitutions)=>offset,
-  hmtx: (view, offset, glyphs, substitutions)=>offset,
-  loca: (view, offset, glyphs, substitutions)=>offset,
-  name: (view, offset, glyphs, substitutions)=>offset,
+  maxp: (view, offset, settings, glyphs, substitutions)=>offset,
+  name: (view, offset, settings, glyphs, substitutions)=>{
+    view.setUint16(offset, 1, false); // version
+/*.
+uint16	count	Number of name records.
+Offset16	storageOffset	Offset to start of string storage (from start of table).
+NameRecord	nameRecord[count]	The name records where count is the number of records.
+uint16	langTagCount	Number of language-tag records.
+LangTagRecord	langTagRecord[langTagCount]	The language-tag records where langTagCount is the number of records.
+(Variable)		Storage for the actual string data.*/
+    return offset;
+  },
+  'OS/2': (view, offset, settings, glyphs, substitutions)=>offset,
+  head: (view, offset, settings, glyphs, substitutions)=>offset,
+  hhea: (view, offset, settings, glyphs, substitutions)=>offset,
+  hmtx: (view, offset, settings, glyphs, substitutions)=>offset,
+  loca: (view, offset, settings, glyphs, substitutions)=>offset,
   post: (view, offset, glyphs, substitutions)=>offset
 };
 
-export function generateOTF(glyphs, substitutions) {
+export function generateOTF(settings, glyphs, substitutions) {
   const buffer = new ArrayBuffer(4096);
   const view = new DataView(buffer);
   let offset = 0;
@@ -111,12 +121,12 @@ export function generateOTF(glyphs, substitutions) {
     'cmap',
     'glyf',
     'maxp',
+    'name',
     'OS/2',
     'head',
     'hhea',
     'hmtx',
     'loca',
-    'name',
     'post'
   ];
   if (substitutions.length) tables.push('GSUB')
@@ -147,7 +157,7 @@ export function generateOTF(glyphs, substitutions) {
   for (let i=0; i<tables.length; i++) {
     offset = align4(offset);
     let start = offset;
-    offset = tableGen[tables[i]](view, offset, glyphs, substitutions);
+    offset = tableGen[tables[i]](view, offset, settings, glyphs, substitutions);
     let headoffset = directoryStart+(16*i);
     view.setUint32(headoffset+12, offset-start, false);
     view.setUint32(headoffset+8, start, false);
