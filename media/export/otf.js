@@ -22,8 +22,6 @@ function getChecksum(view, offset, length) {
 // Tables
 const tableGen = {
   cmap: (view, offset, glyphs, substitutions)=>{
-    offset = align4(offset);
-    const start = offset;
     let subtable4glyphs = glyphs.filter(gl=>gl.char.length===1&&gl.char.codePointAt(0)<=0xFFFF);
     let subtable12glyphs = glyphs.filter(gl=>gl.char.length===1&&gl.char.codePointAt(0)>0xFFFF);
     let subtable14glyphs = glyphs.filter(gl=>gl.char.length>1);
@@ -85,21 +83,23 @@ const tableGen = {
     }
     // TODO: Subtables 12/14
 
-    return {
-      start,
-      offset,
-      length: offset-start
-    };
+    return offset;
   },
-  glyf: (view, offset, glyphs, substitutions)=>{},
-  maxp: (view, offset, glyphs, substitutions)=>{},
-  'OS/2': (view, offset, glyphs, substitutions)=>{},
-  head: (view, offset, glyphs, substitutions)=>{},
-  hhea: (view, offset, glyphs, substitutions)=>{},
-  hmtx: (view, offset, glyphs, substitutions)=>{},
-  loca: (view, offset, glyphs, substitutions)=>{},
-  name: (view, offset, glyphs, substitutions)=>{},
-  post: (view, offset, glyphs, substitutions)=>{}
+  glyf: (view, offset, glyphs, substitutions)=>{
+/*int16	numberOfContours	If the number of contours is greater than or equal to zero, this is a simple glyph. If negative, this is a composite glyph — the value -1 should be used for composite glyphs.
+int16	xMin	Minimum x for coordinate data.
+int16	yMin	Minimum y for coordinate data.
+int16	xMax	Maximum x for coordinate data.
+int16	yMax	Maximum y for coordinate data.*/
+  },
+  maxp: (view, offset, glyphs, substitutions)=>offset,
+  'OS/2': (view, offset, glyphs, substitutions)=>offset,
+  head: (view, offset, glyphs, substitutions)=>offset,
+  hhea: (view, offset, glyphs, substitutions)=>offset,
+  hmtx: (view, offset, glyphs, substitutions)=>offset,
+  loca: (view, offset, glyphs, substitutions)=>offset,
+  name: (view, offset, glyphs, substitutions)=>offset,
+  post: (view, offset, glyphs, substitutions)=>offset
 };
 
 export function generateOTF(glyphs, substitutions) {
@@ -145,11 +145,12 @@ export function generateOTF(glyphs, substitutions) {
   }
 
   for (let i=0; i<tables.length; i++) {
-    let ret = tableGen[tables[i]](view, offset, glyphs, substitutions);
-    offset = directoryStart+(16*i);
-    view.setUint32(offset+12, ret.length, false);
-    view.setUint32(offset+8, ret.start, false);
-    view.setUint32(offset+4, getChecksum(view, ret.start, ret.length), false);
-    offset = ret.offset;
+    offset = align4(offset);
+    let start = offset;
+    offset = tableGen[tables[i]](view, offset, glyphs, substitutions);
+    let headoffset = directoryStart+(16*i);
+    view.setUint32(headoffset+12, offset-start, false);
+    view.setUint32(headoffset+8, start, false);
+    view.setUint32(headoffset+4, getChecksum(view, start, offset-start), false);
   }
 }
