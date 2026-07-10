@@ -1,9 +1,13 @@
 body {
   display: flex;
+  width: 100dvw;
+  height: 100dvh;
+  overflow: hidden;
 }
 nav {
-  width: 20dvw;
+  width: 25dvw;
   display: flex;
+  gap: 5px;
   flex-direction: column;
   padding: 10px;
   background-color: var(--bg-0);
@@ -15,5 +19,20 @@ nav a {
   color: var(--text-1);
 }
 main {
-  width: 80dvw;
+  width: 75dvw;
+}
+[data-page="glyphs"] > div:has(h2) {
+  display: flex;
+}
+[data-page="glyphs"] > div:has(h2) h2 {
+  flex: 1;
+}
+.list {
+  display: flex;
+  flex-wrap: wrap;
+}
+.list div {
+  padding: 5px;
+  border-radius: 0.5rem;
+  background-color: var(--bg-2);
 }
