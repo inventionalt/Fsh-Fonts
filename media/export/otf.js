@@ -100,30 +100,46 @@ int16	yMax	Maximum y for coordinate data.*/
     view.setUint16(offset+2, count, false); // count
     view.setUint16(offset+4, 0, false); // storageOffset (temp)
     offset += 6;
-    let recordStarts = [];
-    let putPlat = (id, len)=>{
-      recordStarts.push(offset);
+    let recordStarts = offset;
+    let putPlat = (id, str)=>{
       view.setUint16(offset, 0, false); // platformID
       view.setUint16(offset+2, 4, false); // encodingID
       view.setUint16(offset+4, 0, false); // languageID
       view.setUint16(offset+6, id, false); // nameID
-      view.setUint16(offset+8, len, false); // length
+      view.setUint16(offset+8, str.length*2, false); // length
       view.setUint16(offset+10, 0, false); // stringOffset (temp)
       offset += 12;
     };
-    if (settings.family.length>0) putPlat(1, settings.family.length);
-    if (settings.subfamily.length>0) putPlat(2, settings.subfamily.length);
-    if (settings.family.length>0&&settings.subfamily.length>0) putPlat(4, settings.family.length+settings.subfamily.length+1);
-    if (settings.version.length>0) putPlat(5, settings.version.length);
-    if (settings.copyright.length>0) putPlat(0, settings.copyright.length);
-    if (settings.designer.length>0) putPlat(9, settings.designer.length);
-    if (settings.desc.length>0) putPlat(10, settings.desc.length);
-    if (settings.license.length>0) putPlat(13, settings.license.length);
-    if (settings.sample.length>0) putPlat(19, settings.sample.length);
+    if (settings.family.length>0) putPlat(1, settings.family);
+    if (settings.subfamily.length>0) putPlat(2, settings.subfamily);
+    if (settings.family.length>0&&settings.subfamily.length>0) putPlat(4, settings.family+' '+settings.subfamily);
+    if (settings.version.length>0) putPlat(5, settings.version);
+    if (settings.copyright.length>0) putPlat(0, settings.copyright);
+    if (settings.designer.length>0) putPlat(9, settings.designer);
+    if (settings.desc.length>0) putPlat(10, settings.desc);
+    if (settings.license.length>0) putPlat(13, settings.license);
+    if (settings.sample.length>0) putPlat(19, settings.sample);
     view.setUint16(offset, 0, false); // langTagCount (languages aren't real)
     offset += 2;
     view.setUint16(tableStart+4, offset-tableStart, false);
-    // TODO: Store the strings
+    let storageStart = offset;
+    let writeString = (str)=>{
+      view.setUint16(recordStarts+10, offset-storageStart, false);
+      recordStarts += 12;
+      for (let i = 0; i < str.length; i++) {
+        view.setUint16(offset, str.charCodeAt(i), false);
+        offset += 2;
+      }
+    };
+    if (settings.family.length>0) writeString(settings.family);
+    if (settings.subfamily.length>0) writeString(settings.subfamily);
+    if (settings.family.length>0&&settings.subfamily.length>0) writeString(settings.family+' '+settings.subfamily);
+    if (settings.version.length>0) writeString(settings.version);
+    if (settings.copyright.length>0) writeString(settings.copyright);
+    if (settings.designer.length>0) writeString(settings.designer);
+    if (settings.desc.length>0) writeString(settings.desc);
+    if (settings.license.length>0) writeString(settings.license);
+    if (settings.sample.length>0) writeString(settings.sample);
     return offset;
   },
   'OS/2': (view, offset, settings, glyphs, substitutions)=>offset,
