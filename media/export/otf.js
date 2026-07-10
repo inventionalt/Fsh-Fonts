@@ -24,14 +24,13 @@ const tableGen = {
   cmap: (view, offset, glyphs, substitutions)=>{
     offset = align4(offset);
     const start = offset;
-    let subtable4glyphs = glyphs.filter(gl=>gl.name.length===1&&gl.name.codePointAt(0)<=0xFFFF);
-    let subtable12glyphs = glyphs.filter(gl=>gl.name.length===1&&gl.name.codePointAt(0)>0xFFFF);
-    let subtable14glyphs = glyphs.filter(gl=>gl.name.length>1);
+    let subtable4glyphs = glyphs.filter(gl=>gl.char.length===1&&gl.char.codePointAt(0)<=0xFFFF);
+    let subtable12glyphs = glyphs.filter(gl=>gl.char.length===1&&gl.char.codePointAt(0)>0xFFFF);
+    let subtable14glyphs = glyphs.filter(gl=>gl.char.length>1);
 
     view.setUint16(offset, 0, false); // version
-    offset += 2;
-    view.setUint16(offset, (subtable4glyphs.length>0?1:0)+(subtable12glyphs.length>0?1:0)+(subtable14glyphs.length>0?1:0), false); // numTables
-    offset += 2;
+    view.setUint16(offset+2, (subtable4glyphs.length>0?1:0)+(subtable12glyphs.length>0?1:0)+(subtable14glyphs.length>0?1:0), false); // numTables
+    offset += 4;
 
     let subtableIdxStart = offset;
     let subtable = (encoding)=>{
@@ -47,10 +46,10 @@ const tableGen = {
     if (has4subtable) {
       let subtableStart = offset;
       view.setUint16(offset, 4, false); // format
-      view.setUint16(offset+2, 0, false); // TODO: length
+      view.setUint16(offset+2, 0, false); // length (Temp)
       view.setUint16(offset+4, 0, false); // language
       offset += 6;
-      let segCount = subtable4glyphs.length+1; // Optimize segments if you want, but im not doing that
+      let segCount = subtable4glyphs.length; // Optimize segments if you want, but im not doing that
       let entrySelector = fl2(segCount);
       let searchRange = (1<<entrySelector)*2;
       view.setUint16(offset, segCount*2, false); // segCountX2
@@ -58,22 +57,22 @@ const tableGen = {
       view.setUint16(offset+4, entrySelector, false); // entrySelector
       view.setUint16(offset+6, segCount*2-searchRange, false); // rangeShift
       offset += 8;
-      for (let i=0; i<segCount-1; i++) {
-        view.setUint16(offset, subtable4glyphs[i].name.codePointAt(0), false); // endCode
+      for (let i=1; i<segCount; i++) {
+        view.setUint16(offset, subtable4glyphs[i].char.codePointAt(0), false); // endCode
         offset += 2;
       }
       view.setUint16(offset, 0xFFFF, false);
       offset += 2;
       view.setUint16(offset, 0, false); // reserved
       offset += 2;
-      for (let i=0; i<segCount-1; i++) {
-        view.setUint16(subtable4glyphs[i].name.codePointAt(0), 0, false); // startCode
+      for (let i=1; i<segCount; i++) {
+        view.setUint16(subtable4glyphs[i].char.codePointAt(0), 0, false); // startCode
         offset += 2;
       }
       view.setUint16(offset, 0xFFFF, false);
       offset += 2;
-      for (let i=0; i<segCount-1; i++) {
-        view.setInt16(offset, (glyphs.findIndex(gl=>gl.name===subtable4glyphs[i].name)-subtable4glyphs[i].name.codePointAt(0)), false); // idDelta
+      for (let i=1; i<segCount; i++) {
+        view.setInt16(offset, (glyphs.findIndex(gl=>gl.char===subtable4glyphs[i].char)-subtable4glyphs[i].char.codePointAt(0)), false); // idDelta
         offset += 2;
       }
       view.setUint16(offset, 1, false);
@@ -82,21 +81,25 @@ const tableGen = {
         view.setUint16(offset, 0, false); // idRangeOffset
         offset += 2;
       }
-      subtableStart
+      view.setUint16(subtableStart+2, offset-subtableStart, false); // length
     }
-    /*view.setUint16(offset, 14, false); // format
-    offset += 2;
-    view.setUint32(offset, 0, false); // TODO: length
-    offset += 4;
-    view.setUint32(offset, 0, false); // TODO: numVarSelectorRecords
-    offset += 4;*/
+    // TODO: Subtables 12/14
 
     return {
       start,
       offset,
       length: offset-start
     };
-  }
+  },
+  glyf: (view, offset, glyphs, substitutions)=>{},
+  maxp: (view, offset, glyphs, substitutions)=>{},
+  'OS/2': (view, offset, glyphs, substitutions)=>{},
+  head: (view, offset, glyphs, substitutions)=>{},
+  hhea: (view, offset, glyphs, substitutions)=>{},
+  hmtx: (view, offset, glyphs, substitutions)=>{},
+  loca: (view, offset, glyphs, substitutions)=>{},
+  name: (view, offset, glyphs, substitutions)=>{},
+  post: (view, offset, glyphs, substitutions)=>{}
 };
 
 export function generateOTF(glyphs, substitutions) {
@@ -107,12 +110,12 @@ export function generateOTF(glyphs, substitutions) {
   let tables = [
     'cmap',
     'glyf',
+    'maxp',
     'OS/2',
     'head',
     'hhea',
     'hmtx',
     'loca',
-    'maxp',
     'name',
     'post'
   ];
