@@ -142,17 +142,12 @@ int16	yMax	Maximum y for coordinate data.*/
     if (settings.sample.length>0) writeString(settings.sample);
     return offset;
   },
-  'OS/2': (view, offset, settings, glyphs, substitutions)=>offset,
-  head: (view, offset, settings, glyphs, substitutions)=>offset,
-  hhea: (view, offset, settings, glyphs, substitutions)=>offset,
-  hmtx: (view, offset, settings, glyphs, substitutions)=>offset,
-  loca: (view, offset, settings, glyphs, substitutions)=>offset,
   post: (view, offset, settings, glyphs, substitutions)=>{
     view.setUint32(offset, 0x30000, false); // version
     view.setInt16(offset+4, Math.trunc(settings.italicAngle), false); // italicAngle
     view.setUint16(offset+6, parseInt(settings.italicAngle.toString().split('.')[1]), false);
-    view.setInt16(offset+8, Math.trunc(settings.underlinePosition), false); // underlinePosition
-    view.setInt16(offset+10, Math.trunc(settings.underlineThickness), false); // underlineThickness
+    view.setInt16(offset+8, settings.underlinePosition, false); // underlinePosition
+    view.setInt16(offset+10, settings.underlineThickness, false); // underlineThickness
     view.setUint32(offset+12, settings.monospaced?0:1, false); // isFixedPitch
     view.setUint32(offset+16, 0, false); // minMemType42
     view.setUint32(offset+20, 0, false); // maxMemType42
@@ -160,7 +155,12 @@ int16	yMax	Maximum y for coordinate data.*/
     view.setUint32(offset+28, 0, false); // maxMemType1
     offset += 32;
     return offset;
-  }
+  },
+  'OS/2': (view, offset, settings, glyphs, substitutions)=>offset,
+  head: (view, offset, settings, glyphs, substitutions)=>offset,
+  hhea: (view, offset, settings, glyphs, substitutions)=>offset,
+  hmtx: (view, offset, settings, glyphs, substitutions)=>offset,
+  loca: (view, offset, settings, glyphs, substitutions)=>offset
 };
 
 export function generateOTF(settings, glyphs, substitutions) {
@@ -173,12 +173,12 @@ export function generateOTF(settings, glyphs, substitutions) {
     'glyf',
     'maxp',
     'name',
+    'post',
     'OS/2',
     'head',
     'hhea',
     'hmtx',
-    'loca',
-    'post'
+    'loca'
   ];
   if (substitutions.length) tables.push('GSUB')
 
