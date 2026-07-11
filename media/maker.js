@@ -4,11 +4,23 @@ window.showPage = (page)=>document.querySelectorAll('main > div').forEach(div=>d
 window.showPage('settings');
 
 // Glyphs
-let glyphs = [{ name: '.notdef', char: '', glyf: '' }];
+let glyphs = [{
+  name: '.notdef',
+  char: '',
+  glyf: [
+    { x: 0, y: 0, countourEnd: false, onCurve: true },
+    { x: 50, y: 0, countourEnd: false, onCurve: true },
+    { x: 50, y: 100, countourEnd: false, onCurve: true },
+    { x: 0, y: 100, countourEnd: true, onCurve: true },
+    { x: 0, y: 100, countourEnd: false, onCurve: true },
+    { x: 0, y: 0, countourEnd: false, onCurve: true },
+    { x: 50, y: 100, countourEnd: true, onCurve: true }
+  ]
+}];
 let substitutions = [];
 function showGlyphLists() {
   let disp = (gl)=>`<div>
-  <span>${gl.glyf}</span>
+  <span>${JSON.stringify(gl.glyf)}</span>
   <span>${gl.name}</span>
 </div>`;
   document.getElementById('glyph-list').innerHTML = glyphs.map(disp).join('');
@@ -29,7 +41,7 @@ window.createGlyph = ()=>{
   glyphs.push({
     name: char,
     char: char,
-    glyf: ''
+    glyf: glyphs[0].glyf
   });
   showGlyphLists();
 };
@@ -38,7 +50,7 @@ window.createSub = ()=>{
   substitutions.push({
     name: charseq,
     char: charseq,
-    glyf: ''
+    glyf: glyphs[0].glyf
   });
   showGlyphLists();
 };
