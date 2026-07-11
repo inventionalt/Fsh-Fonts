@@ -280,4 +280,6 @@ export function generateOTF(settings, glyphs, substitutions) {
     view.setUint32(headoffset+8, start, false);
     view.setUint32(headoffset+4, getChecksum(view, start, offset-start), false);
   }
+
+  return view;
 }
