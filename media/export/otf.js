@@ -131,12 +131,22 @@ const tableGen = {
   },
   maxp: (view, offset, settings, glyphs, substitutions)=>{
     view.setUint32(offset, 0x10000, false); // version
+    let maxPoints = 0;
+    let maxContours = 0;
+    glyphs.forEach(gl=>{
+      if (gl.glyf.length>maxPoints) maxPoints = glyf.glyf.length;
+      let countours = 0;
+      gl.glyf.forEach(pt=>{
+        if (pt.countourEnd) countours++;
+      });
+      if (countours>maxContours) maxContours = countours;
+    });
     view.setUint16(offset+4, glyphs.length, false); // numGlyphs
-    // TODO: Everything below
-    view.setUint16(offset+6, 0, false); // maxPoints
-    view.setUint16(offset+8, 0, false); // maxContours
+    view.setUint16(offset+6, maxPoints, false); // maxPoints
+    view.setUint16(offset+8, maxContours, false); // maxContours
     view.setUint16(offset+10, 0, false); // maxCompositePoints
     view.setUint16(offset+12, 0, false); // maxCompositeContours
+    // TODO: Everything below
     view.setUint16(offset+14, 0, false); // maxZones
     view.setUint16(offset+16, 0, false); // maxTwilightPoints
     view.setUint16(offset+18, 0, false); // maxStorage
