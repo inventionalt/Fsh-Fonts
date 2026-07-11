@@ -47,6 +47,11 @@ showGlyphLists();
 // Export
 window.exportFont = ()=>{
   generateOTF({
+    italicAngle: document.getElementById('style-italicAngle').value,
+    underlinePosition: document.getElementById('style-underlinePosition').value,
+    underlineThickness: document.getElementById('style-underlineThickness').value,
+    monospaced: document.getElementById('style-monospaced').checked,
+
     family: document.getElementById('string-family').value,
     subfamily: document.getElementById('string-subfamily').value,
     version: document.getElementById('string-version').value,
