@@ -20,6 +20,8 @@ function getChecksum(view, offset, length) {
 }
 
 // Tables
+let glyfStart = 0;
+let glyphStarts = [];
 const tableGen = {
   cmap: (view, offset, settings, glyphs, substitutions)=>{
     let subtable4glyphs = glyphs.filter(gl=>gl.char.length===1&&gl.char.codePointAt(0)<=0xFFFF);
@@ -86,7 +88,9 @@ const tableGen = {
     return offset;
   },
   glyf: (view, offset, settings, glyphs, substitutions)=>{
+    glyfStart = offset;
     for (let i=0; i<glyphs.length; i++) {
+      glyphStarts.push(offset);
       let minX = 0;
       let minY = 0;
       let maxX = 0;
@@ -128,6 +132,17 @@ const tableGen = {
         offset += 2;
       }
     }
+    glyphStarts.push(offset);
+    return offset;
+  },
+  loca: (view, offset, settings, glyphs, substitutions)=>{
+    for (let i=0; i<glyphStarts.length; i++) {
+      view.setUint32(offset, glyphStarts[i]-glyfStart, false);
+      offset += 4;
+    }
+    glyfStart = null;
+    glyphStarts = null;
+    return offset;
   },
   maxp: (view, offset, settings, glyphs, substitutions)=>{
     view.setUint32(offset, 0x10000, false); // version
@@ -235,8 +250,7 @@ uint16	maxComponentDepth	Maximum levels of recursion; 1 for simple components.*/
   'OS/2': (view, offset, settings, glyphs, substitutions)=>offset,
   head: (view, offset, settings, glyphs, substitutions)=>offset,
   hhea: (view, offset, settings, glyphs, substitutions)=>offset,
-  hmtx: (view, offset, settings, glyphs, substitutions)=>offset,
-  loca: (view, offset, settings, glyphs, substitutions)=>offset
+  hmtx: (view, offset, settings, glyphs, substitutions)=>offset
 };
 
 export function generateOTF(settings, glyphs, substitutions) {
@@ -247,14 +261,14 @@ export function generateOTF(settings, glyphs, substitutions) {
   let tables = [
     'cmap',
     'glyf',
+    'loca',
     'maxp',
     'name',
     'post',
     'OS/2',
     'head',
     'hhea',
-    'hmtx',
-    'loca'
+    'hmtx'
   ];
   if (substitutions.length) tables.push('GSUB')
 
