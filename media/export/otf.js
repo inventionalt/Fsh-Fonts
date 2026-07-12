@@ -22,6 +22,7 @@ function getChecksum(view, offset, length) {
 // Tables
 let glyfStart = 0;
 let glyphStarts = [];
+let tglyfs = [0, 0, 0, 0];
 const tableGen = {
   cmap: (view, offset, settings, glyphs, substitutions)=>{
     let subtable4glyphs = glyphs.filter(gl=>gl.char.length===1&&gl.char.codePointAt(0)<=0xFFFF);
@@ -103,6 +104,10 @@ const tableGen = {
         if (pt.y>maxY) maxY = pt.y;
         if (pt.countourEnd) countourEnds.push(idx);
       });
+      if (minX<tglyfs[0]) tglyfs[0] = minX;
+      if (minY<tglyfs[1]) tglyfs[1] = minY;
+      if (maxX<tglyfs[2]) tglyfs[2] = maxX;
+      if (maxY<tglyfs[3]) tglyfs[3] = maxY;
       view.setInt16(offset, countourEnds.length, false); // numberOfContours
       view.setInt16(offset+2, minX, false); // xMin
       view.setInt16(offset+4, minY, false); // yMin
@@ -248,7 +253,47 @@ uint16	maxComponentDepth	Maximum levels of recursion; 1 for simple components.*/
     return offset;
   },
   'OS/2': (view, offset, settings, glyphs, substitutions)=>offset,
-  head: (view, offset, settings, glyphs, substitutions)=>offset,
+  head: (view, offset, settings, glyphs, substitutions)=>{
+    view.setUint16(offset, 1, false); // majorVersion
+    view.setUint16(offset+2, 0, false); // minorVersion
+    let version = (settings.version||'Version 1.0').split(' ').slice(-1)[0].split('.');
+    view.setInt16(offset+4, parseInt(version[0]||'1'), false); // fontRevision
+    view.setUint16(offset+6, parseInt(version[1]||'0'), false); // fontRevision
+    view.setUint32(offset+8, 0, false); // TODO: checksumAdjustment
+    view.setUint32(offset+12, 0x5F0F3CF5, false); // magicNumber
+    view.setUint16(offset+16, 0, false); // TODO: flags
+/*
+Bit 0: Baseline for font at y=0.
+Bit 1: Left sidebearing point at x=0 (relevant only for TrueType rasterizers).
+*/
+    view.setUint16(offset+18, 256, false); // TODO: unitsPerEm
+    view.setBigInt64(offset+20, BigInt(Math.floor(Date.now()/1000))+2082844800n, false); // created
+    view.setBigInt64(offset+28, BigInt(Math.floor(Date.now()/1000))+2082844800n, false); // modified
+    view.setInt16(offset+36, tglyfs[0], false); // xMin
+    view.setInt16(offset+38, tglyfs[1], false); // yMin
+    view.setInt16(offset+40, tglyfs[2], false); // xMax
+    view.setInt16(offset+42, tglyfs[3], false); // yMax
+    tglyfs = [0, 0, 0, 0];
+    view.setUint16(offset+44, 0, false); // TODO: macStyle
+    view.setUint16(offset+46, 0, false); // TODO: lowestRecPPEM
+    view.setInt16(offset+48, 2, false); // fontDirectionHint
+    view.setInt16(offset+50, 1, false); // indexToLocFormat
+    view.setInt16(offset+52, 0, false); // glyphDataFormat
+    offset += 54;
+/*
+uint32	checksumAdjustment	To compute: set it to 0, sum the entire font as uint32, then store 0xB1B0AFBA - sum.
+uint16	unitsPerEm	Set to a value from 16 to 16384. Any value in this range is valid. In fonts that have TrueType outlines, a power of 2 is recommended as this allows performance optimization in some rasterizers.
+
+uint16	macStyle	Bit 0: Bold (if set to 1);
+Bit 1: Italic (if set to 1)
+Bit 2: Underline (if set to 1)
+Bit 3: Outline (if set to 1)
+Bit 4: Shadow (if set to 1)
+Bit 5: Condensed (if set to 1)
+Bit 6: Extended (if set to 1)
+uint16	lowestRecPPEM	Smallest readable size in pixels.*/
+    return offset;
+  },
   hhea: (view, offset, settings, glyphs, substitutions)=>offset,
   hmtx: (view, offset, settings, glyphs, substitutions)=>offset
 };
