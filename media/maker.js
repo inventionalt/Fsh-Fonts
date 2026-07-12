@@ -7,10 +7,10 @@ window.showPage('settings');
 const weightNames = ['Thin','Thin','Extra-light','Light','Normal','Medium','Semi-bold','Bold','Extra-bold','Black','Black'];
 const widthNames = ['Gay','Ultra-condensed','Extra-condensed','Condensed','Semi-condensed','Medium','Semi-expanded','Expanded','Extra-expanded','Ultra-expanded'];
 document.getElementById('style-weight').oninput = (evt)=>{
-  document.getElementById('preview-weight') = evt.target.value+' '+weightNames[Math.round(evt.target.value/100)];
+  document.getElementById('preview-weight').innerText = evt.target.value+' '+weightNames[Math.round(evt.target.value/100)];
 };
 document.getElementById('style-width').oninput = (evt)=>{
-  document.getElementById('preview-width') = evt.target.value+' '+widthNames[evt.target.value];
+  document.getElementById('preview-width').innerText = evt.target.value+' '+widthNames[evt.target.value];
 };
 
 // Glyphs
