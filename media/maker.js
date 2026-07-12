@@ -3,6 +3,16 @@ import { generateOTF } from './export/otf.js';
 window.showPage = (page)=>document.querySelectorAll('main > div').forEach(div=>div.style.display=(div.getAttribute('data-page')===page)?'':'none');
 window.showPage('settings');
 
+// Settings
+const weightNames = ['Thin','Thin','Extra-light','Light','Normal','Medium','Semi-bold','Bold','Extra-bold','Black','Black'];
+const widthNames = ['Gay','Ultra-condensed','Extra-condensed','Condensed','Semi-condensed','Medium','Semi-expanded','Expanded','Extra-expanded','Ultra-expanded'];
+document.getElementById('style-weight').oninput = (evt)=>{
+  document.getElementById('preview-weight') = evt.target.value+' '+weightNames[Math.round(evt.target.value/100)];
+};
+document.getElementById('style-width').oninput = (evt)=>{
+  document.getElementById('preview-width') = evt.target.value+' '+widthNames[evt.target.value];
+};
+
 // Glyphs
 let glyphs = [{
   name: '.notdef',
@@ -59,9 +69,15 @@ showGlyphLists();
 // Export
 window.exportFont = ()=>{
   let view = generateOTF({
+    weight: document.getElementById('style-weight').value,
+    italic: document.getElementById('style-italic').checked,
     italicAngle: document.getElementById('style-italicAngle').value,
+    underline: document.getElementById('style-underline').checked,
     underlinePosition: document.getElementById('style-underlinePosition').value,
     underlineThickness: document.getElementById('style-underlineThickness').value,
+    outline: document.getElementById('style-outline').checked,
+    shadow: document.getElementById('style-shadow').checked,
+    width: document.getElementById('style-width').value,
     monospaced: document.getElementById('style-monospaced').checked,
 
     family: document.getElementById('string-family').value,
