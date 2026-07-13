@@ -285,10 +285,11 @@ uint16	maxComponentDepth	Maximum levels of recursion; 1 for simple components.*/
     view.setUint8(offset+41, 0, false);
     view.setUint8(offset+42, 0, false);
     view.setUint8(offset+43, 0, false);
-    view.setUint32(offset+44, 0, false); // TODO: ulUnicodeRange1
-    view.setUint32(offset+48, 0, false); // TODO: ulUnicodeRange2
-    view.setUint32(offset+52, 0, false); // TODO: ulUnicodeRange3
-    view.setUint32(offset+56, 0, false); // TODO: ulUnicodeRange4
+    // ulUnicodeRange (not needed)
+    view.setUint32(offset+44, 0, false);
+    view.setUint32(offset+48, 0, false);
+    view.setUint32(offset+52, 0, false);
+    view.setUint32(offset+56, 0, false);
     offset += 60;
 /*
 Tag	achVendID	
