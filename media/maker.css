@@ -20,6 +20,9 @@ nav a {
 }
 main {
   width: 75dvw;
+  padding: 5px;
+  overflow: auto;
+  box-sizing: border-box;
 }
 [data-page="glyphs"] > div:has(h2) {
   display: flex;
