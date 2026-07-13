@@ -96,10 +96,10 @@ const tableGen = {
     glyfStart = offset;
     for (let i=0; i<glyphs.length; i++) {
       glyphStarts.push(offset);
-      let minX = 0;
-      let minY = 0;
-      let maxX = 0;
-      let maxY = 0;
+      let minX = glyphs[i].glyf[0].x;
+      let minY = glyphs[i].glyf[0].y;
+      let maxX = glyphs[i].glyf[0].x;
+      let maxY = glyphs[i].glyf[0].y;
       let countourEnds = [];
       glyphs[i].glyf.forEach((pt,idx)=>{
         if (pt.x<minX) minX = pt.x;
@@ -110,8 +110,8 @@ const tableGen = {
       });
       if (minX<glyfsdata.minX) glyfsdata.minX = minX;
       if (minY<glyfsdata.minY) glyfsdata.minY = minY;
-      if (maxX<glyfsdata.maxX) glyfsdata.maxX = maxX;
-      if (maxY<glyfsdata.maxY) glyfsdata.maxY = maxY;
+      if (maxX>glyfsdata.maxX) glyfsdata.maxX = maxX;
+      if (maxY>glyfsdata.maxY) glyfsdata.maxY = maxY;
       if (maxX-minX>0) {
         glyfsdata.widthSum += maxX-minX;
         glyfsdata.widthCount++;
@@ -200,7 +200,7 @@ uint16	maxComponentDepth	Maximum levels of recursion; 1 for simple components.*/
   name: (view, offset, settings, glyphs, substitutions)=>{
     let tableStart = offset;
     view.setUint16(offset, 1, false); // version
-    let count = (settings.family.length>0)+(settings.subfamily.length>0)+(settings.version.length>0)+(settings.copyright.length>0)+(settings.designer.length>0)+(settings.desc.length>0)+(settings.license.length>0)+(settings.sample.length>0);
+    let count = (settings.family.length>0)+(settings.subfamily.length>0)+(settings.family.length>0&&settings.subfamily.length>0)+(settings.version.length>0)+(settings.copyright.length>0)+(settings.designer.length>0)+(settings.desc.length>0)+(settings.license.length>0)+(settings.sample.length>0);
     view.setUint16(offset+2, count, false); // count
     view.setUint16(offset+4, 0, false); // storageOffset (temp)
     offset += 6;
@@ -248,8 +248,7 @@ uint16	maxComponentDepth	Maximum levels of recursion; 1 for simple components.*/
   },
   post: (view, offset, settings, glyphs, substitutions)=>{
     view.setUint32(offset, 0x30000, false); // version
-    view.setInt16(offset+4, Math.trunc(settings.italicAngle), false); // italicAngle
-    view.setUint16(offset+6, parseInt(settings.italicAngle.toString().split('.')[1]), false);
+    view.setInt32(offset+4, Math.round(settings.italicAngle * 65536), false); // italicAngle
     view.setInt16(offset+8, settings.underlinePosition, false); // underlinePosition
     view.setInt16(offset+10, settings.underlineThickness, false); // underlineThickness
     view.setUint32(offset+12, settings.monospaced?0:1, false); // isFixedPitch
@@ -299,14 +298,14 @@ uint16	maxComponentDepth	Maximum levels of recursion; 1 for simple components.*/
     view.setUint8(offset+61, settings.tag.charCodeAt(1));
     view.setUint8(offset+62, settings.tag.charCodeAt(2));
     view.setUint8(offset+63, settings.tag.charCodeAt(3));
-    view.setUint16(offset+64, (settings.italic?1:0)+(settings.underline?2:0)+(settings.outline?8:0)+(settings.weight>650?32:0)+(settings.width===5&&Math.round(settings.weight/100)===4&&!settings.italic&&!settings.underline&&!settings.outline?64:0), false)+128; // fsSelection
+    view.setUint16(offset+64, (settings.italic?1:0)+(settings.underline?2:0)+(settings.outline?8:0)+(settings.weight>650?32:0)+(settings.width===5&&Math.round(settings.weight/100)===4&&!settings.italic&&!settings.underline&&!settings.outline?64:0)+128, false); // fsSelection
     view.setUint16(offset+66, Math.min(glyfsdata.firstchar, 0xFFFF), false); // usFirstCharIndex
     view.setUint16(offset+68, Math.max(glyfsdata.firstchar, glyfsdata.lastchar), false); // usLastCharIndex
     view.setInt16(offset+70, settings.ascender, false); // sTypoAscender
     view.setInt16(offset+72, settings.descender, false); // sTypoDescender
     view.setInt16(offset+74, settings.linegap, false); // sTypoLineGap
     view.setUint16(offset+76, glyfsdata.maxY, false); // usWinAscent
-    view.setUint16(offset+78, glyfsdata.minY, false); // usWinDescent
+    view.setUint16(offset+78, Math.abs(glyfsdata.minY), false); // usWinDescent
     view.setUint32(offset+80, 0, false); // TODO: ulCodePageRange1 (0 is acceptable for now)
     view.setUint32(offset+84, 0, false); // TODO: ulCodePageRange2
     view.setInt16(offset+88, 0, false); // TODO: sxHeight
@@ -352,7 +351,8 @@ uint16	lowestRecPPEM	Smallest readable size in pixels.*/
     return offset;
   },
   hhea: (view, offset, settings, glyphs, substitutions)=>offset,
-  hmtx: (view, offset, settings, glyphs, substitutions)=>offset
+  hmtx: (view, offset, settings, glyphs, substitutions)=>offset,
+  GSUB: (view, offset, settings, glyphs, substitutions)=>offset
 };
 
 export function generateOTF(settings, glyphs, substitutions) {
