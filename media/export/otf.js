@@ -311,10 +311,10 @@ uint16	maxComponentDepth	Maximum levels of recursion; 1 for simple components.*/
     view.setInt16(offset+88, 0, false); // TODO: sxHeight
     view.setInt16(offset+90, 0, false); // TODO: sCapHeight
     view.setUint16(offset+92, 0, false); // usDefaultChar
-    view.setUint16(offset+94, 20, false); // usBreakChar
+    view.setUint16(offset+94, 0x20, false); // usBreakChar
     view.setUint16(offset+96, 2, false); // TODO: usMaxContext
-    view.setUint16(offset+98, 0, false); // TODO: usLowerOpticalPointSize
-    view.setUint16(offset+100, 0, false); // TODO: usUpperOpticalPointSize
+    view.setUint16(offset+98, 0, false); // usLowerOpticalPointSize
+    view.setUint16(offset+100, 0xFFFF, false); // usUpperOpticalPointSize
     offset += 102;
     return offset;
   },
