@@ -39,18 +39,18 @@ const tableGen = {
     view.setInt16(offset+26, settings.supYOff, false); // ySuperscriptYOffset
     view.setInt16(offset+28, settings.strikeThickness, false); // yStrikeoutSize
     view.setInt16(offset+30, settings.strikePosition, false); // yStrikeoutPosition
-    view.setInt16(offset+32, 0, false); // TODO: sFamilyClass
+    view.setInt16(offset+32, 0, false); // sFamilyClass
     // TODO: panose
-    view.setUint8(offset+34, 0, false);
-    view.setUint8(offset+35, 0, false);
-    view.setUint8(offset+36, 0, false);
-    view.setUint8(offset+37, 0, false);
-    view.setUint8(offset+38, 0, false);
-    view.setUint8(offset+39, 0, false);
-    view.setUint8(offset+40, 0, false);
-    view.setUint8(offset+41, 0, false);
-    view.setUint8(offset+42, 0, false);
-    view.setUint8(offset+43, 0, false);
+    view.setUint8(offset+34, 0, false); // bFamilyType
+    view.setUint8(offset+35, 0, false); // bSerifStyle
+    view.setUint8(offset+36, 0, false); // bWeight
+    view.setUint8(offset+37, 0, false); // bProportion
+    view.setUint8(offset+38, 0, false); // bContrast
+    view.setUint8(offset+39, 0, false); // bStrokeVariation
+    view.setUint8(offset+40, 0, false); // bArmStyle
+    view.setUint8(offset+41, 0, false); // bLetterform
+    view.setUint8(offset+42, 0, false); // bMidline
+    view.setUint8(offset+43, 0, false); // bXHeight
     // TODO: ulUnicodeRange (not needed for now)
     view.setUint32(offset+44, 0, false);
     view.setUint32(offset+48, 0, false);
@@ -224,7 +224,7 @@ uint16	lowestRecPPEM	Smallest readable size in pixels.*/
     view.setInt16(offset+14, 0, false); // minRightSideBearing (aw-xMax)
     view.setInt16(offset+16, shareddata.maxWidth, false); // xMaxExtent
     view.setInt16(offset+18, 0, false); // TODO: caretSlopeRise
-    view.setInt16(offset+20, 0, false); // TODO: caretSlopeRun
+    view.setInt16(offset+20, 1, false); // TODO: caretSlopeRun
     view.setInt16(offset+22, 0, false); // TODO: caretOffset
     view.setBigInt64(offset+24, 0n, false); // Reserved
     view.setInt16(offset+32, 0, false); // metricDataFormatun
